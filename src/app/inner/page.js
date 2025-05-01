@@ -20,7 +20,7 @@ export default function Home() {
       const formData = new FormData()
       formData.append('file', audioBlob, 'recording.wav')
 
-      const res = await fetch('http://localhost:8001/transcribe', {
+      const res = await fetch('http://10.90.115.176:8001/transcribe', {
         method: 'POST',
         body: formData,
       })

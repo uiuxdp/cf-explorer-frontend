@@ -23,6 +23,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import Image from "next/image";
+import { RainbowButton } from "../ui/rainbow-button";
+import { StarBorder } from "../ui/star-border";
+import Link from "next/link";
 
 const Navbar1 = ({
   logo = {
@@ -121,29 +124,31 @@ const Navbar1 = ({
     (<section className="py-4 fixed top-0 left-0 w-full z-50 bg-black/20 backdrop-blur-md border-b border-[#0a3522]">
       <div className="container mx-auto">
         <nav className="hidden justify-between lg:flex">
-          <div className="flex items-center gap-6">
-            <a href={logo.url} className="flex items-center gap-2">
-              <div className="w-32 aspect-[32/11] relative">
-              <Image src={logo.src} fill alt={logo.alt} />
-              </div>
-              {/* <span className="text-lg font-semibold">{logo.title}</span> */}
-            </a>
-            <div className="flex items-center">
+        <div className="flex gap-2">
+     <Link href="/custom-rag" className="border border-[#005836] text-white px-[20px] py-[6px] rounded-full text-base inline-flex items-center">Custom Rag</Link>
+          </div>
+          <div className="flex items-center">
               <NavigationMenu>
                 <NavigationMenuList>
                   {menu.map((item) => renderMenuItem(item))}
                 </NavigationMenuList>
               </NavigationMenu>
             </div>
+
+          <div className="flex items-center gap-6">
+            
+
+
+            <a href={logo.url} className="flex items-center gap-2">
+              <div className="w-32 aspect-[32/11] relative">
+              <Image src={logo.src} fill alt={logo.alt}/>
+              </div>
+              {/* <span className="text-lg font-semibold">{logo.title}</span> */}
+            </a>
+
+
           </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline" size="sm">
-              <a href={auth.login.url}>{auth.login.text}</a>
-            </Button>
-            <Button asChild size="sm">
-              <a href={auth.signup.url}>{auth.signup.text}</a>
-            </Button>
-          </div>
+          
         </nav>
         <div className="block lg:hidden">
           <div className="flex items-center justify-between">

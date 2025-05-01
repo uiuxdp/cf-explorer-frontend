@@ -32,7 +32,7 @@ import Image from "next/image";
 import { TextShimmer } from "./ui/text-shimmer";
 import EqualizerIcon from "./EqualizerIcon";
 
-export default function ChatInterface() {
+export default function ChatInterface({data}) {
   // const [messages, setMessages] = useState([]);
   // const [input, setInput] = useState("");
   // const [isLoading, setIsLoading] = useState(false);
@@ -46,41 +46,50 @@ export default function ChatInterface() {
   const mediaRecorderRef = useRef(null)
   const audioChunks = useRef([])
 
-
+const bodyData=data?.data
 
   const { messages, input,setInput, isLoading, handleInputChange, handleSubmit } =
-    useChat();
+    useChat({
+      api: "/api/chat",
+      body: { bodyData },
+    });
 
 
     const startRecording = async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream)
-      audioChunks.current = []
-      setIsRecording(true)
-      mediaRecorder.ondataavailable = e => {
-        audioChunks.current.push(e.data)
+      if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream)
+        audioChunks.current = []
+        setIsRecording(true)
+        mediaRecorder.ondataavailable = e => {
+          audioChunks.current.push(e.data)
+        }
+    
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' })
+          const formData = new FormData()
+          formData.append('file', audioBlob, 'recording.wav')
+    
+          const res = await fetch('http://localhost:8001/transcribe', {
+            method: 'POST',
+            body: formData,
+          })
+    
+          const data = await res.json()
+          setTranscript(data.text)
+          setInput(data.text)
+     console.log(data,"datain");
+     
+         
+        }
+    
+        mediaRecorderRef.current = mediaRecorder
+        mediaRecorder.start()
+      } else {
+        console.error("getUserMedia not supported or not running in a browser");
       }
+      // const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
   
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' })
-        const formData = new FormData()
-        formData.append('file', audioBlob, 'recording.wav')
-  
-        const res = await fetch('http://localhost:8001/transcribe', {
-          method: 'POST',
-          body: formData,
-        })
-  
-        const data = await res.json()
-        setTranscript(data.text)
-        setInput(data.text)
-   console.log(data,"datain");
-   
-       
-      }
-  
-      mediaRecorderRef.current = mediaRecorder
-      mediaRecorder.start()
     }
   
     const stopRecording = () => {

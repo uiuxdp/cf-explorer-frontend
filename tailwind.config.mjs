@@ -11,6 +11,11 @@ export default {
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
+  			'color-1': 'hsl(var(--color-1))',
+  			'color-2': 'hsl(var(--color-2))',
+  			'color-3': 'hsl(var(--color-3))',
+  			'color-4': 'hsl(var(--color-4))',
+  			'color-5': 'hsl(var(--color-5))',
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
@@ -55,10 +60,30 @@ export default {
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		},
-  		backgroundImage: {
-  			'grid-pattern': '',
-  			'grid-pattern-light': ''
-  		}
+  		animation: {
+  			rainbow: 'rainbow var(--speed, 2s) infinite linear',
+			  'star-movement-bottom': 'star-movement-bottom linear infinite alternate',
+			  'star-movement-top': 'star-movement-top linear infinite alternate',
+  		},
+  		keyframes: {
+  			rainbow: {
+  				'0%': {
+  					'background-position': '0%'
+  				},
+  				'100%': {
+  					'background-position': '200%'
+  				}
+  			},
+			  'star-movement-bottom': {
+				'0%': { transform: 'translate(0%, 0%)', opacity: '1' },
+				'100%': { transform: 'translate(-100%, 0%)', opacity: '0' },
+			  },
+			  'star-movement-top': {
+				'0%': { transform: 'translate(0%, 0%)', opacity: '1' },
+				'100%': { transform: 'translate(100%, 0%)', opacity: '0' },
+			  },
+  		},
+  		
   	}
   },
   plugins: [require("tailwindcss-animate")],

@@ -34,7 +34,9 @@ import EqualizerIcon from "./EqualizerIcon";
 import { SparklesCore } from "./ui/sparkles";
 import Link from "next/link";
 
-export default function CardListing() {
+export default function CardListing({data1}) {
+  console.log(data1,"listingggg");
+  
   return (
     <div className=" bg-[#020001] relative pt-[200px]">
       <div className="absolute -top-[10%] left-1/2 -translate-x-1/2 -translate-y-1/2 filter blur-[160px] rounded-full w-[1000px]  h-[500px] bg-gradient-to-br opacity-70 from-[#2b693a] to-[#00461e]"></div>
@@ -82,7 +84,28 @@ export default function CardListing() {
           </div>
 
           <div className="grid grid-cols-4 gap-4">
-            {data?.map((item, i) => {
+          {data1?.data?.map((item, i) => {
+              return (
+                <div key={i}>
+               <Link href={`/${item?.slug}`} className="p-[30px] block border-2 border-white/20 rounded-[24px] relative overflow-hidden">
+                    <div className="absolute -top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 filter blur-[40px] rounded-full w-[300px]  h-[200px] bg-gradient-to-br opacity-50 from-[#2b693a] to-[#00461e]"></div>
+                    <div className="flex justify-between">
+                      <div>
+                        <p className="text-white/40">Title</p>
+                        <h2 className="text-white text-xl">{item?.title}</h2>
+                      </div>
+                  
+                    </div>
+                   <div className="flex flex-wrap mt-12">
+                    <div className="border border-[#005836] text-white px-[13px] py-[6px] rounded-full text-xs mr-[10px] mb-[10px]">Dubai Police Website</div>
+                    <div className="border border-[#005836] text-white px-[13px] py-[6px] rounded-full text-xs mr-[10px] mb-[10px]">Dubai Police App</div>
+                    <div className="border border-[#005836] text-white px-[13px] py-[6px] rounded-full text-xs mr-[10px] mb-[10px]">Dubai Police SPS</div>
+                   </div>
+                  </Link>
+                </div>
+              );
+            })}
+            {/* {data?.map((item, i) => {
               return (
                 <div key={i}>
                <Link href={"/sdfsdf"} className="p-[30px] block border-2 border-white/20 rounded-[24px] relative overflow-hidden">
@@ -105,15 +128,13 @@ export default function CardListing() {
                   </Link>
                 </div>
               );
-            })}
+            })} */}
 
-            <div>q2</div>
-            <div>q3</div>
-            <div>q4</div>
+          
           </div>
         </div>
 
-        <div>
+        {/* <div>
           <div className="border-b border-white/20 pb-3 mb-6 text-white font-bold text-5xl">
             2025
           </div>
@@ -144,7 +165,7 @@ export default function CardListing() {
             <div>q3</div>
             <div>q4</div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

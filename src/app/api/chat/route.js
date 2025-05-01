@@ -779,8 +779,8 @@ export async function generateDatabaseStatistics() {
   return statisticsPrompt;
 }
 
-async function getContext(query, nResults = 200) {
-  const response = await fetch('http://localhost:1111/search', {
+async function getContext(query,slug, nResults = 200) {
+  const response = await fetch(`http://localhost:1111/search?slug=${slug}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -806,33 +806,16 @@ async function getContext(query, nResults = 200) {
 export const maxDuration = 30;
 
 export async function POST(req) {
-  const { messages } = await req.json();
+  const  body1 = await req.json();
 
-
+const { messages, bodyData } = body1;
+console.log(bodyData,"bodybodybodybody");
+const slug=bodyData?.slug
   const response =  streamText({
     model: lmstudio(MODEL_LLM),
     messages,
-    system: `You are Dubai Police Feedback Analyst, a specialized assistant that analyzes citizen feedback to improve police services. Respond in plain English. Do not use XML-style tags like <think> or <|im_start|>.
-
-You analyze citizen feedback to improve police services using structured data (Comments column).
-
-Core Functions:
-- Analyze feedback trends, themes, sentiment patterns, and actionable insights
-
-Process:
-1. First use getInformation to retrieve relevant feedback data
-2. Then use analyzeComments to categorize and analyze the feedback
-
-Tools:
-- getInformation: Retrieves feedback data from the database
-- analyzer: if user want to report bug then call this tool which Categorizes comments as bugs, UI issues, suggestions, complaints, etc.
-
-Response Style:
-- Provide exactly what's requested (e.g., if 2 suggestions asked, give exactly 2)
-- Be direct and concise - focus only on key insights
-- Use specific data points from retrieved feedback
-- Format appropriately for the question type
-- Never fabricate data - acknowledge limitations clearly
+    system: `
+    ${bodyData?.additionalPrompt!=null&&bodyData?.additionalPrompt}
 
 
 
@@ -870,8 +853,10 @@ Response Style:
           // }
           
           // const relevantDocs = await retrieveContext(question);
-          const relevantDocs=await getContext(question,100)
-          const context = relevantDocs?.results?.filter(doc => doc.similarity > 0.5)?.map(doc => `Sub-Channels: ${doc.metadata["Sub-Channels"]} Comment:${doc.metadata.Comments}`).join("\n\n");
+          const relevantDocs=await getContext(question,slug,100)
+          // Sub-Channels: ${doc.metadata["Sub-Channels"]} 
+          const context = relevantDocs?.results?.filter(doc => doc.similarity > 0.5)?.map(doc => doc.content).join("\n\n");
+          // const context = relevantDocs?.results?.filter(doc => doc.similarity > 0.5)?.map(doc => `Comment:${doc.metadata.Comments}`).join("\n\n");
           // const context = relevantDocs?.results?.map(doc => doc.content).join("\n\n");
           // const relevantDocs = await findSimilarDocuments(question);
 console.log(context,"contextcontextcontextcontextcontext");

@@ -1,25 +1,25 @@
-import { fetchSheetData } from "@/lib/utils";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible"
-import { generateText, streamText } from "ai"
+import { streamText } from "ai"
 import { createClient } from "@libsql/client"
 import { searchDocuments } from "@/lib/search"
 import { processAttachment } from "@/lib/process-document"
 import { MODEL_LLM } from "@/lib/constants"
-// Create a custom provider for LM Studio
-// LM Studio uses port 1234 by default
+
+// Create LM Studio client
 const lmstudio = createOpenAICompatible({
   name: "lmstudio",
   baseURL: "http://localhost:1234/v1",
 })
+
+// Create database client
 const db = createClient({
   url: process.env.BETTER_SQL_URL || "file:local.db",
   authToken: "process.env.BETTER_SQL_AUTH_TOKEN",
 })
 
-
-
 export async function POST(req) {
-  const { messages, experimental_attachments } = await req.json()
+  try {
+    const { messages, experimental_attachments } = await req.json()
 
     // Process any attachments if present
     if (experimental_attachments && experimental_attachments.length > 0) {
@@ -48,20 +48,25 @@ export async function POST(req) {
 
     // Create a system message with the relevant context
     console.log(relevantDocuments,"relevantDocuments");
-  
-  const systemMessage = `You are a helpful assistant that answers questions based on the provided context. 
     
-  Context:
+    const systemMessage =
+      relevantDocuments.length > 0
+        ? `You are a helpful assistant. Use the following information to answer the user's question:\n\n${relevantDocuments.join("\n\n")}`
+        : "You are a helpful assistant."
 
-  
-  Answer the user's question based on the context provided. If the answer is not in the context, say "I don't have enough information to answer that question."`
+    // Generate a response using LM Studio
+    const result = streamText({
+      model: lmstudio(MODEL_LLM),
+      messages,
+      system: systemMessage,
+    })
 
-  const result = streamText({
-    model: lmstudio(MODEL_LLM), 
-    // messages: [{ role: "system", content: systemMessage }, ...messages],
-    messages
-  })
-
-  // Return the stream response
-  return result.toDataStreamResponse()
+    return result.toDataStreamResponse()
+  } catch (error) {
+    console.error("Error in chat API:", error)
+    return new Response(JSON.stringify({ error: "An error occurred during processing" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    })
+  }
 }
