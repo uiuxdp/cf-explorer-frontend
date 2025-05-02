@@ -125,7 +125,7 @@ const Navbar1 = ({
       <div className="container mx-auto">
         <nav className="hidden justify-between lg:flex">
         <div className="flex gap-2">
-     <Link href="/custom-rag" className="border border-[#005836] text-white px-[20px] py-[6px] rounded-full text-base inline-flex items-center">Custom Rag</Link>
+     <Link href="/rag" className="border border-[#005836] text-white px-[20px] py-[6px] rounded-full text-base inline-flex items-center">Custom Rag</Link>
           </div>
           <div className="flex items-center">
               <NavigationMenu>

@@ -34,6 +34,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.42.0",
+    "formidable": "^3.5.4",
     "framer-motion": "^12.9.2",
     "fs": "^0.0.1-security",
     "langchain": "^0.3.22",

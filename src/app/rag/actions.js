@@ -3,24 +3,20 @@
 import { generateText } from "ai"
 import { embed } from "ai"
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible"
+import { MODEL_LLM } from "@/lib/constants"
 
 // Create a provider instance for LM Studio
 const lmstudio = createOpenAICompatible({
   name: "lmstudio",
-//   baseURL: "http://10.90.115.142:1234/v1", // Default LM Studio port
   baseURL: "http://localhost:1234/v1", // Default LM Studio port
 })
 
 // In a real application, you would use a vector database
 // For simplicity, we'll use an in-memory store
-
-
-// Our simple "database"
 const documents = []
 
-
 // Function to create an embedding for text
- async function createEmbedding(text) {
+async function createEmbedding(text) {
   try {
     // Use an embedding model from LM Studio
     const embeddingModelName = "text-embedding-nomic-embed-text-v1.5" // Replace with your actual model
@@ -38,16 +34,129 @@ const documents = []
   }
 }
 
-// Add a document to our "database"
+// Function to chunk text into smaller pieces
+function chunkText(text, maxChunkSize = 1000) {
+  // For CSV files, try to keep rows together
+  if (text.includes(",") && text.includes("\n")) {
+    return chunkCSV(text, maxChunkSize)
+  }
+
+  // For other text (including PDF content)
+  return chunkGenericText(text, maxChunkSize)
+}
+
+// Chunk CSV data by preserving rows
+function chunkCSV(csvText, maxChunkSize) {
+  const rows = csvText.split("\n")
+  const header = rows[0] // Preserve the header for each chunk
+
+  const chunks = []
+  let currentChunk = header
+  let currentSize = header.length
+
+  // Start from row 1 (after header)
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i]
+
+    // If adding this row would exceed the chunk size, start a new chunk
+    if (currentSize + row.length + 1 > maxChunkSize && currentChunk !== header) {
+      chunks.push(currentChunk)
+      currentChunk = header + "\n" + row
+      currentSize = header.length + row.length + 1
+    } else {
+      currentChunk += "\n" + row
+      currentSize += row.length + 1
+    }
+  }
+
+  // Add the last chunk if it's not empty
+  if (currentChunk !== header) {
+    chunks.push(currentChunk)
+  }
+
+  return chunks
+}
+
+// Chunk generic text by sentences or paragraphs
+function chunkGenericText(text, maxChunkSize) {
+  // Try to split by paragraphs first
+  const paragraphs = text.split(/\n\s*\n/)
+
+  const chunks = []
+  let currentChunk = ""
+
+  for (const paragraph of paragraphs) {
+    // If the paragraph itself is too large, split it by sentences
+    if (paragraph.length > maxChunkSize) {
+      const sentences = paragraph.split(/(?<=[.!?])\s+/)
+
+      for (const sentence of sentences) {
+        // If adding this sentence would exceed the chunk size, start a new chunk
+        if (currentChunk.length + sentence.length > maxChunkSize && currentChunk.length > 0) {
+          chunks.push(currentChunk)
+          currentChunk = sentence
+        } else {
+          // Add a space if the current chunk is not empty
+          if (currentChunk.length > 0) {
+            currentChunk += " "
+          }
+          currentChunk += sentence
+        }
+      }
+    } else {
+      // If adding this paragraph would exceed the chunk size, start a new chunk
+      if (currentChunk.length + paragraph.length > maxChunkSize && currentChunk.length > 0) {
+        chunks.push(currentChunk)
+        currentChunk = paragraph
+      } else {
+        // Add a newline if the current chunk is not empty
+        if (currentChunk.length > 0) {
+          currentChunk += "\n\n"
+        }
+        currentChunk += paragraph
+      }
+    }
+  }
+
+  // Add the last chunk if it's not empty
+  if (currentChunk.length > 0) {
+    chunks.push(currentChunk)
+  }
+
+  return chunks
+}
+
+// Add a document to our "database" with chunking
 export async function addDocument(text) {
   try {
-    const embedding = await createEmbedding(text)
-
-    // Check if document already exists (to avoid duplicates)
-    const exists = documents.some((doc) => doc.text === text)
-    if (!exists) {
-      documents.push({ text, embedding })
+    // Skip empty documents
+    if (!text || text.trim() === "") {
+      return
     }
+
+    // Chunk the document into smaller pieces
+    const chunks = chunkText(text)
+    console.log(`Document split into ${chunks.length} chunks`)
+
+    // Process each chunk
+    for (const chunk of chunks) {
+      // Check if chunk already exists (to avoid duplicates)
+      const exists = documents.some((doc) => doc.text === chunk)
+      if (!exists) {
+        const embedding = await createEmbedding(chunk)
+        documents.push({
+          text: chunk,
+          embedding,
+          // Store metadata about the original document if needed
+          metadata: {
+            originalLength: text.length,
+            chunkCount: chunks.length,
+          },
+        })
+      }
+    }
+
+    return { chunkCount: chunks.length }
   } catch (error) {
     console.error("Error adding document:", error)
     throw error
@@ -55,7 +164,7 @@ export async function addDocument(text) {
 }
 
 // Find the most similar documents to a query
-export async function findSimilarDocuments(query, topK = 3) {
+export async function findSimilarDocuments(query, topK = 5) {
   try {
     // If no documents, return empty array
     if (documents.length === 0) {
@@ -93,10 +202,10 @@ export async function generateContentWithRAG(query) {
 
     // Create context from relevant documents
     const context = relevantDocs.join("\n\n")
-console.log(context,"contextcontextcontext");
+    console.log(`Using ${relevantDocs.length} chunks for context`)
 
     // Generate text with context
-    const modelName ='qwen2.5-7b-instruct'// Replace with your actual model name
+    const modelName = MODEL_LLM // Replace with your actual model name
 
     const result = await generateText({
       model: lmstudio(modelName),

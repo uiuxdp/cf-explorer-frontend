@@ -366,68 +366,36 @@ const bodyData=data?.data
           </div> */}
           </div>
         </div>
+        {console.log(data,"datadatadata")}
+        {data?.data?.insights?.length>0&&
         <div className="flex-1 pt-24 pe-20 max-w-[1000px]">
-      
-          <div className="p-5 bg-white/15 rounded-3xl mb-4">
-            <h3 className="text-white text-3xl font-bold mb-2">
-              Services feedback volumen / Sentiment analysis score
-            </h3>
-            <p className="text-white mb-6">
-              Happiness Meter - Digital Dubai - Dataset used for analysis.
-            </p>
-            <div className="aspect-[645/450] relative rounded-3xl overflow-hidden">
-              <iframe
-                width="645"
-                height="640"
-                src="https://lookerstudio.google.com/embed/reporting/3ac54537-9427-4557-ae26-251c425339e4/page/p_nrws9zzzed"
-                frameBorder="0"
-                className="border-0  absolute top-0 left-0 w-full h-full"
-                allowFullScreen=""
-                sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-              ></iframe>
-            </div>
-          </div>
+
+          {data?.data?.insights?.map((item,i)=>{
+            return(
 
           <div className="p-5 bg-white/15 rounded-3xl mb-4">
-            <h3 className="text-white text-3xl font-bold mb-2">
-            Performance by Service
-            </h3>
-            <p className="text-white mb-6">
-            Explore the performance for individual services selecting from the below list.
-            </p>
-            <div className="aspect-[645/200] relative rounded-3xl overflow-hidden">
-              <iframe
-                width="645"
-                height="640"
-                src="https://lookerstudio.google.com/embed/reporting/edcb0b6e-6bdd-4538-a941-c0b63ff1421f/page/gcVsD"
-                frameBorder="0"
-                className="border-0  absolute top-0 left-0 w-full h-full"
-                allowFullScreen=""
-                sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-              ></iframe>
-            </div>
-          </div>
-
-          <div className="p-5 bg-white/15 rounded-3xl mb-4">
-            <h3 className="text-white text-3xl font-bold mb-2">
-            Source dataset
-            </h3>
-            <p className="text-white mb-6">
-            Happiness Meter - Digital Dubai 
-            </p>
-            <div className="aspect-[645/450] relative rounded-3xl overflow-hidden">
-              <iframe
-                width="645"
-                height="640"
-                src="https://docs.google.com/spreadsheets/d/1OaMom2Zj6Ai5-JvMX-njXaFjNiXC6mjZ3feFg2soz74/?gid=2054219272&single=true&widget=true&headers=false&rm=minimal"
-                frameBorder="0"
-                className="border-0  absolute top-0 left-0 w-full h-full"
-                allowFullScreen=""
-                sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-              ></iframe>
-            </div>
+          <h3 className="text-white text-3xl font-bold mb-2">
+            {item?.title}
+          </h3>
+          <p className="text-white mb-6">
+           {item?.description}
+          </p>
+          <div className="aspect-[645/450] relative rounded-3xl overflow-hidden" style={{aspectRatio:item?.width/item?.height}}>
+            <iframe
+              width={item?.width}
+              height={item?.height}
+              src={item?.link}
+              frameBorder="0"
+              className="border-0  absolute top-0 left-0 w-full h-full"
+              allowFullScreen=""
+              sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+            ></iframe>
           </div>
         </div>
+            )
+          })}
+        </div>
+        }
       </div>
     </div>
   );
