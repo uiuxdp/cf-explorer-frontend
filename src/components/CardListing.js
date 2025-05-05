@@ -87,7 +87,7 @@ export default function CardListing({data1}) {
           {data1?.data?.map((item, i) => {
               return (
                 <div key={i}>
-               <Link href={`/${item?.slug}`} className="p-[30px] block border-2 border-white/20 rounded-[24px] relative overflow-hidden">
+               <Link href={`/${item?.slug}`} className="p-[30px] block border-2 border-white/20 rounded-[24px] relative overflow-hidden h-full">
                     <div className="absolute -top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 filter blur-[40px] rounded-full w-[300px]  h-[200px] bg-gradient-to-br opacity-50 from-[#2b693a] to-[#00461e]"></div>
                     <div className="flex justify-between">
                       <div>

@@ -946,80 +946,80 @@ ANSWER:`,
       //     return result;
       //   },
       // }),
-      analyzer: tool({
-        description: `Analyze comments to categorize them as bugs, UI issues, suggestions, complaints, or other feedback types.`,
-        parameters: z.object({
-          comments: z.array(z.string().describe("the comment text to analyze")).describe("array of comments to analyze"),
-        }),
-        execute: async ({ comments }) => {
+//       analyzer: tool({
+//         description: `Analyze comments to categorize them as bugs, UI issues, suggestions, complaints, or other feedback types.`,
+//         parameters: z.object({
+//           comments: z.array(z.string().describe("the comment text to analyze")).describe("array of comments to analyze"),
+//         }),
+//         execute: async ({ comments }) => {
         
-          const { object:anlyzeObject } = await generateObject({
-            model: lmstudio(MODEL_LLM),
-            system:
-              "You are a feedback classifier for technical issues and user sentiment.",
-              schema:z.object({
-                results: z.array(
-                  z.object({
-                    comment: z.string(),
-                    type: z.enum([
-                      "BUG",
-                      "UI_ISSUE",
-                      "SUGGESTION",
-                      "CONFUSION",
-                      "COMPLAINT",
-                      "GENERAL",
-                    ]),
-                    priority: z.optional(z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"])), // only for BUG or UI_ISSUE
-                    summary: z.string().max(100),
-                    sentiment: z.enum([
-                      "ANGRY",
-                      "CONFUSED",
-                      "SATISFIED",
-                      "NEUTRAL",
-                      "FRUSTRATED",
-                    ]),
-                    requiresTicket: z.boolean(),
-                  })
-                ),
-              }),
-            prompt: `You are a feedback analyzer.
+//           const { object:anlyzeObject } = await generateObject({
+//             model: lmstudio(MODEL_LLM),
+//             system:
+//               "You are a feedback classifier for technical issues and user sentiment.",
+//               schema:z.object({
+//                 results: z.array(
+//                   z.object({
+//                     comment: z.string(),
+//                     type: z.enum([
+//                       "BUG",
+//                       "UI_ISSUE",
+//                       "SUGGESTION",
+//                       "CONFUSION",
+//                       "COMPLAINT",
+//                       "GENERAL",
+//                     ]),
+//                     priority: z.optional(z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"])), // only for BUG or UI_ISSUE
+//                     summary: z.string().max(100),
+//                     sentiment: z.enum([
+//                       "ANGRY",
+//                       "CONFUSED",
+//                       "SATISFIED",
+//                       "NEUTRAL",
+//                       "FRUSTRATED",
+//                     ]),
+//                     requiresTicket: z.boolean(),
+//                   })
+//                 ),
+//               }),
+//             prompt: `You are a feedback analyzer.
 
-Below is an array of raw user comments. Your job is to analyze and classify them into a structured JSON format based on the following schema:
+// Below is an array of raw user comments. Your job is to analyze and classify them into a structured JSON format based on the following schema:
 
-{
-  results: [
-    {
-      comment: string,
-      type: one of: "BUG", "UI_ISSUE", "SUGGESTION", "CONFUSION", "COMPLAINT", "GENERAL",
-      summary: a short summary of the issue (max 100 characters),
-      sentiment: one of: "ANGRY", "CONFUSED", "SATISFIED", "NEUTRAL", "FRUSTRATED",
-      requiresTicket: true or false,
-      priority: optional, only included if type is "BUG" or "UI_ISSUE"
-                value must be one of: "LOW", "MEDIUM", "HIGH", "CRITICAL"
-    }
-  ]
-}
+// {
+//   results: [
+//     {
+//       comment: string,
+//       type: one of: "BUG", "UI_ISSUE", "SUGGESTION", "CONFUSION", "COMPLAINT", "GENERAL",
+//       summary: a short summary of the issue (max 100 characters),
+//       sentiment: one of: "ANGRY", "CONFUSED", "SATISFIED", "NEUTRAL", "FRUSTRATED",
+//       requiresTicket: true or false,
+//       priority: optional, only included if type is "BUG" or "UI_ISSUE"
+//                 value must be one of: "LOW", "MEDIUM", "HIGH", "CRITICAL"
+//     }
+//   ]
+// }
 
-Rules:
-- Always return a **valid JSON object** with a top-level 'results' array.
-- For 'BUG' or 'UI_ISSUE':
-  - Set 'requiresTicket' to true.
-  - Include a valid 'priority' value.
-- For all other types:
-  - Set 'requiresTicket' to false.
-  - Do **not** include 'priority' at all.
-- 'summary' must be no longer than 100 characters.
-- Do **not** add any explanation or non-JSON content — only return the JSON object.
+// Rules:
+// - Always return a **valid JSON object** with a top-level 'results' array.
+// - For 'BUG' or 'UI_ISSUE':
+//   - Set 'requiresTicket' to true.
+//   - Include a valid 'priority' value.
+// - For all other types:
+//   - Set 'requiresTicket' to false.
+//   - Do **not** include 'priority' at all.
+// - 'summary' must be no longer than 100 characters.
+// - Do **not** add any explanation or non-JSON content — only return the JSON object.
 
-Input comments:
+// Input comments:
 
-${JSON.stringify(comments)}
-`,
-          });
-          console.log(anlyzeObject,anlyzeObject,"calling tool4444");
-          return  anlyzeObject.results;
-        },
-      }),
+// ${JSON.stringify(comments)}
+// `,
+//           });
+//           console.log(anlyzeObject,anlyzeObject,"calling tool4444");
+//           return  anlyzeObject.results;
+//         },
+//       }),
     },
  maxSteps:4
  

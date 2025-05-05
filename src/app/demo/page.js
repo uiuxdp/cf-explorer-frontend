@@ -9,7 +9,9 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
 
   // Set up chat functionality
-  const { messages, input, handleInputChange, handleSubmit } = useChat()
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
+    api: "/api/chat3"
+  })
 
   // Function to generate embeddings
   const generateEmbedding = async () => {

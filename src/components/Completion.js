@@ -70,7 +70,7 @@ const bodyData=data?.data
           const formData = new FormData()
           formData.append('file', audioBlob, 'recording.wav')
     
-          const res = await fetch('http://localhost:8001/transcribe', {
+          const res = await fetch('http://10.90.115.176:8001/transcribe', {
             method: 'POST',
             body: formData,
           })
@@ -106,6 +106,13 @@ const bodyData=data?.data
 
     },[isRecording, transcript])
 
+    const messagesEndRef = useRef(null)
+    useEffect(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+      }
+    }, [messages])
+
   return (
     <div className=" bg-[#020001] relative">
       <div className="absolute -top-[10%] left-1/2 -translate-x-1/2 -translate-y-1/2 filter blur-[160px] rounded-full w-[1000px]  h-[500px] bg-gradient-to-br opacity-70 from-[#2b693a] to-[#00461e]"></div>
@@ -135,12 +142,12 @@ const bodyData=data?.data
                     </div>
                     <h1 className="text-base font-normal  text-transparent bg-clip-text bg-gradient-to-r from-[#a0fbb3] to-[#fefefe] mb-3">
                       {" "}
-                      I am an CX Feedback AI assistant.{" "}
+                      CX Feedback Explorer
                     </h1>
-                    <h1 className="text-5xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#a0fbb3] to-[#fefefe]">
+                    <h1 className="text-5xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#a0fbb3] to-[#fefefe] leading-tight">
                       {" "}
-                      What can i do for
-                      <br /> you Today?{" "}
+                      Discover insights from
+                      <br /> Customer experiences
                     </h1>
                   </div>
                 )}
@@ -170,6 +177,8 @@ const bodyData=data?.data
                                     __html: message.content,
                                   }}
                                 />
+
+                                {/* {message?.toolInvocations[0]?.state==="call"&&<p>Getting information......</p>} */}
                               </div>
                             </div>
                           </div>
@@ -243,6 +252,7 @@ const bodyData=data?.data
                       </TextShimmer>
                     </div>
                   )}
+                    <div ref={messagesEndRef} />
                 </ScrollArea>
 
                 {/* Regenerate Button */}
@@ -373,7 +383,7 @@ const bodyData=data?.data
           {data?.data?.insights?.map((item,i)=>{
             return(
 
-          <div className="p-5 bg-white/15 rounded-3xl mb-4">
+          <div className="p-5 bg-white/15 rounded-3xl mb-4" key={i}>
           <h3 className="text-white text-3xl font-bold mb-2">
             {item?.title}
           </h3>

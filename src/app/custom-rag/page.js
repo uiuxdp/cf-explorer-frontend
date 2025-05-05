@@ -9,7 +9,7 @@ import { useChat } from "@ai-sdk/react";
 
 export default function ChatPage() {
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: "/api/chat2",
+    api: "/api/chat3",
   })
 
   const [files, setFiles] = useState(null)

@@ -16,7 +16,7 @@ const db = createClient({
   url: process.env.BETTER_SQL_URL || "file:local.db",
   authToken: "process.env.BETTER_SQL_AUTH_TOKEN",
 })
-
+export const runtime = 'edge';
 export async function POST(req) {
   try {
     const { messages, experimental_attachments } = await req.json()

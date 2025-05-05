@@ -1,3 +1,4 @@
+"use client"
 import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
 
 import {
@@ -26,6 +27,10 @@ import Image from "next/image";
 import { RainbowButton } from "../ui/rainbow-button";
 import { StarBorder } from "../ui/star-border";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { getSingleFeedback } from "@/lib/getPages";
+import { useEffect, useState } from "react";
+
 
 const Navbar1 = ({
   logo = {
@@ -120,6 +125,33 @@ const Navbar1 = ({
     signup: { text: "Sign up", url: "#" },
   }
 }) => {
+
+  const { slug } = useParams(); // Getting `slug` from params
+console.log(slug,"slugslugslugslug");
+const [feedbackData, setFeedbackData] = useState(null);  // State to store feedback data
+const [loading, setLoading] = useState(true);  // Loading state
+
+useEffect(() => {
+  if (slug) {
+    // Fetch data when the slug is available
+    const fetchData = async () => {
+      try {
+        const data = await getSingleFeedback(slug);
+        setFeedbackData(data);  // Set feedback data in state
+        console.log(data,"feeeee");
+        
+      } catch (error) {
+        console.error('Error fetching feedback:', error);
+      } finally {
+        setLoading(false);  // Set loading to false when the fetch is done
+      }
+    };
+
+    fetchData();
+  }
+}, [slug]); // Only run when `slug` changes
+
+
   return (
     (<section className="py-4 fixed top-0 left-0 w-full z-50 bg-black/20 backdrop-blur-md border-b border-[#0a3522]">
       <div className="container mx-auto">
@@ -127,23 +159,24 @@ const Navbar1 = ({
         <div className="flex gap-2">
      <Link href="/rag" className="border border-[#005836] text-white px-[20px] py-[6px] rounded-full text-base inline-flex items-center">Custom Rag</Link>
           </div>
-          <div className="flex items-center">
+          {/* <div className="flex items-center">
               <NavigationMenu>
                 <NavigationMenuList>
                   {menu.map((item) => renderMenuItem(item))}
                 </NavigationMenuList>
               </NavigationMenu>
-            </div>
+            </div> */}
 
           <div className="flex items-center gap-6">
             
 
 
             <a href={logo.url} className="flex items-center gap-2">
+            <span className="text-lg font-light text-white/65 me-3">{feedbackData?.data?.title}</span>
               <div className="w-32 aspect-[32/11] relative">
               <Image src={logo.src} fill alt={logo.alt}/>
               </div>
-              {/* <span className="text-lg font-semibold">{logo.title}</span> */}
+             
             </a>
 
 

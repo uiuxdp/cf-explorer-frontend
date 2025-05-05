@@ -3,7 +3,11 @@
 import { generateText } from "ai"
 import { embed } from "ai"
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible"
-import { MODEL_LLM } from "@/lib/constants"
+import { MODEL_EMBED, MODEL_LLM } from "@/lib/constants"
+import { kv } from "@vercel/kv"  // For permanent storage option
+// Or for local storage:
+// import fs from 'fs'
+// import path from 'path'
 
 // Create a provider instance for LM Studio
 const lmstudio = createOpenAICompatible({
@@ -11,15 +15,68 @@ const lmstudio = createOpenAICompatible({
   baseURL: "http://localhost:1234/v1", // Default LM Studio port
 })
 
-// In a real application, you would use a vector database
-// For simplicity, we'll use an in-memory store
-const documents = []
+// Solution 1: Use a database (Vercel KV in this example)
+async function getDocuments() {
+  try {
+    const docs = await kv.get('rag_documents') || []
+    return docs
+  } catch (error) {
+    console.error("Error fetching documents:", error)
+    return []
+  }
+}
+
+async function saveDocuments(docs) {
+  try {
+    await kv.set('rag_documents', docs)
+  } catch (error) {
+    console.error("Error saving documents:", error)
+  }
+}
+
+// Solution 2 (Alternative): Store documents in a local file
+// Uncomment if you want to use local file storage instead
+/*
+const DOCS_FILE_PATH = path.join(process.cwd(), 'data', 'documents.json')
+
+function ensureDirectoryExistence(filePath) {
+  const dirname = path.dirname(filePath)
+  if (fs.existsSync(dirname)) {
+    return true
+  }
+  fs.mkdirSync(dirname, { recursive: true })
+}
+
+async function getDocuments() {
+  try {
+    ensureDirectoryExistence(DOCS_FILE_PATH)
+    if (!fs.existsSync(DOCS_FILE_PATH)) {
+      fs.writeFileSync(DOCS_FILE_PATH, JSON.stringify([]))
+      return []
+    }
+    const data = fs.readFileSync(DOCS_FILE_PATH, 'utf8')
+    return JSON.parse(data)
+  } catch (error) {
+    console.error("Error reading documents file:", error)
+    return []
+  }
+}
+
+async function saveDocuments(docs) {
+  try {
+    ensureDirectoryExistence(DOCS_FILE_PATH)
+    fs.writeFileSync(DOCS_FILE_PATH, JSON.stringify(docs, null, 2))
+  } catch (error) {
+    console.error("Error saving documents file:", error)
+  }
+}
+*/
 
 // Function to create an embedding for text
 async function createEmbedding(text) {
   try {
     // Use an embedding model from LM Studio
-    const embeddingModelName = "text-embedding-nomic-embed-text-v1.5" // Replace with your actual model
+    const embeddingModelName = MODEL_EMBED
 
     const result = await embed({
       model: lmstudio.textEmbeddingModel(embeddingModelName),
@@ -126,13 +183,16 @@ function chunkGenericText(text, maxChunkSize) {
   return chunks
 }
 
-// Add a document to our "database" with chunking
+// Add a document to our database with chunking
 export async function addDocument(text) {
   try {
     // Skip empty documents
     if (!text || text.trim() === "") {
       return
     }
+
+    // Get existing documents
+    const documents = await getDocuments()
 
     // Chunk the document into smaller pieces
     const chunks = chunkText(text)
@@ -151,10 +211,14 @@ export async function addDocument(text) {
           metadata: {
             originalLength: text.length,
             chunkCount: chunks.length,
+            timestamp: new Date().toISOString()
           },
         })
       }
     }
+
+    // Save updated documents
+    await saveDocuments(documents)
 
     return { chunkCount: chunks.length }
   } catch (error) {
@@ -165,7 +229,12 @@ export async function addDocument(text) {
 
 // Find the most similar documents to a query
 export async function findSimilarDocuments(query, topK = 5) {
+  
   try {
+    // Get documents from storage
+    const documents = await getDocuments()
+    console.log(`Found ${documents.length} documents in storage`)
+    
     // If no documents, return empty array
     if (documents.length === 0) {
       return []
@@ -205,7 +274,7 @@ export async function generateContentWithRAG(query) {
     console.log(`Using ${relevantDocs.length} chunks for context`)
 
     // Generate text with context
-    const modelName = MODEL_LLM // Replace with your actual model name
+    const modelName = MODEL_LLM
 
     const result = await generateText({
       model: lmstudio(modelName),
@@ -255,4 +324,26 @@ function cosineSimilarity(a, b) {
   }
 
   return dotProduct / (normA * normB)
+}
+
+// For development/debugging: Clear all documents
+export async function clearAllDocuments() {
+  try {
+    await saveDocuments([])
+    return { success: true, message: "All documents cleared" }
+  } catch (error) {
+    console.error("Error clearing documents:", error)
+    throw error
+  }
+}
+
+// For development/debugging: Get document count
+export async function getDocumentCount() {
+  try {
+    const documents = await getDocuments()
+    return { count: documents.length }
+  } catch (error) {
+    console.error("Error getting document count:", error)
+    throw error
+  }
 }
