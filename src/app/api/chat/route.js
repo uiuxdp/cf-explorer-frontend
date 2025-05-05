@@ -14,8 +14,8 @@ import { MODEL_EMBED, MODEL_LLM } from "../../../lib/constants";
 
 const lmstudio = createOpenAICompatible({
   name: "lmstudio",
-  // baseURL: 'http://localhost:1234/v1',
-  baseURL: "http://10.90.115.176:1234/v1",
+  baseURL: 'http://localhost:1234/v1',
+  // baseURL: "http://10.90.115.176:1234/v1",
   maxRetries: 1, // immediately error if the server is not running
 });
 
