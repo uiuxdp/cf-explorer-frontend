@@ -80,7 +80,7 @@ export default function CardListing({data1}) {
         </div>
         <div>
           <div className="border-b border-white/20 pb-3 mb-6 text-white font-bold text-5xl">
-            2025
+            Assistants
           </div>
 
           <div className="grid grid-cols-4 gap-4">

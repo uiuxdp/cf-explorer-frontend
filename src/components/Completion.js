@@ -48,7 +48,7 @@ export default function ChatInterface({data}) {
 
 const bodyData=data?.data
 
-  const { messages, input,setInput, isLoading, handleInputChange, handleSubmit } =
+  const { messages, input,setInput, isLoading, handleInputChange, handleSubmit, status, stop } =
     useChat({
       api: "/api/chat",
       body: { bodyData },
@@ -178,7 +178,7 @@ const bodyData=data?.data
                                   }}
                                 />
 
-                                {/* {message?.toolInvocations[0]?.state==="call"&&<p>Getting information......</p>} */}
+                           
                               </div>
                             </div>
                           </div>
@@ -204,6 +204,8 @@ const bodyData=data?.data
                               />
                               <div className="bg-[#0e110e] relative p-5 rounded-[0px_24px_24px_24px] prose text-[#d9fde1]">
                             <ReactMarkdown>{message.content}</ReactMarkdown>
+
+                                 {message.toolInvocations?.length > 0&&message?.toolInvocations[0]?.state==="call"&&<p>Getting information......</p>}
                                 {/* {message.toolInvocations?.length > 0 && (
                                   <ReactMarkdown>
                                     {message?.toolInvocations[0]?.result?.text}
@@ -218,7 +220,7 @@ const bodyData=data?.data
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 ml-11">
+                          {/* <div className="flex items-center gap-2 ml-11">
                             <Button variant="ghost" size="icon">
                               <ThumbsUp className="w-4 h-4" />
                             </Button>
@@ -226,7 +228,7 @@ const bodyData=data?.data
                               <ThumbsDown className="w-4 h-4" />
                             </Button>
                             <div className="ml-auto flex gap-2"></div>
-                          </div>
+                          </div> */}
                         </div>
                       )}
                     </div>
@@ -293,6 +295,8 @@ const bodyData=data?.data
                       // onChange={(event) => setInput(event.target.value)}
                       disabled={isLoading}
                     />
+                      {/* <div className="text-white inline-block" onClick={stop}  disabled={!(status === 'streaming' || status === 'submitted')}>Stop</div> */}
+
                     <Button
                       type="button"
                       variant="ghost"
