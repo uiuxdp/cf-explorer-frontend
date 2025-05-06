@@ -14,33 +14,23 @@ import { ThumbsDown, ThumbsUp, Plus } from "lucide-react"
 import { GlowEffect } from "@/components/ui/glow-effect"
 // import { toast } from "@/components/ui/use-toast"
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf';
-import { useChat } from "@ai-sdk/react";
-import { TextShimmer } from "@/components/ui/text-shimmer"
+
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@2.10.377/build/pdf.worker.min.js`;
 
 
 
 export default function RAGPage() {
-
-  const { messages, input,setInput, isLoading, handleInputChange, handleSubmit } =
-  useChat({
-    api: "/api/chat2"
-  });
-
-
   const [extractedText, setExtractedText] = useState('');
   const [documents, setDocuments] = useState([])
   const [newDocument, setNewDocument] = useState("")
-  // const [input, setInput] = useState("")
-  // const [messages, setMessages] = useState([])
-  // const [isLoading, setIsLoading] = useState(false)
+  const [query, setQuery] = useState("")
+  const [result, setResult] = useState("")
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [fileUploading, setFileUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [documentStats, setDocumentStats] = useState({ count: 1, chunks: 1 })
-  console.log(documents,"sdsdhjjfr");
-  
 
   const handleAddDocument = async () => {
     if (newDocument.trim()) {
@@ -123,7 +113,7 @@ export default function RAGPage() {
       return;
     }
 
-    setIsLoading(true);
+    setLoading(true);
     setUploadProgress(10); // Initial progress start
 
     const formData = new FormData();
@@ -156,7 +146,7 @@ export default function RAGPage() {
       console.error('Error during PDF extraction:', err);
       setExtractedText('Error during extraction.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -166,11 +156,9 @@ export default function RAGPage() {
     // Add the document to the UI list
     setDocuments([...documents, `CSV: ${file.name} (${Math.round(file.size / 1024)}KB)`])
 
-
     // Process the document in chunks
     const result = await addDocument(text)
 
-    console.log(result,"texttexttexttexttext");
     // toast({
     //   title: "CSV processed successfully",
     //   description: `${file.name} was split into ${result.chunkCount} chunks for processing`,
@@ -182,26 +170,25 @@ console.log(`${file.name} was split into ${result.chunkCount} chunks for process
       chunks: prev.chunks + result.chunkCount,
     }))
   }
-  // const handleSubmit = async (e) => {
-  //   debugger
-  //   e.preventDefault()
-  //   setIsLoading(true)
-  //   setError("")
 
-  //   try {
-  //     // Generate content based on the query
-  //     const response = await generateContentWithRAG(input)
-  //     setMessages(response)
-  //     console.log(messages, response,"responseresponseresponse");
-      
-  //   } catch (err) {
-  //     setError(
-  //       err instanceof Error ? err.message : "Failed to generate content. Make sure LM Studio server is running.",
-  //     )
-  //   } finally {
-  //     setIsLoading(false)
-  //   }
-  // }
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+
+    try {
+      // Generate content based on the query
+      const response = await generateContentWithRAG(query)
+      setResult(response)
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to generate content. Make sure LM Studio server is running.",
+      )
+    } finally {
+      setLoading(false)
+      setQuery("")
+    }
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#020001]">
@@ -212,7 +199,7 @@ console.log(`${file.name} was split into ${result.chunkCount} chunks for process
         <div className="flex-1 flex overflow-hidden gap-5 relative z-10">
           <div className="flex-1 flex flex-col overflow-hidden rounded-lg max-w-[800px] mx-auto">
             <div className="p-4 flex flex-col h-full">
-              {messages?.length===0 && (
+              {!result && (
                 <div className="text-center mb-4 pt-[100px]">
                   <div>
                     <div className="relative max-w-20 mx-auto mb-11">
@@ -237,7 +224,7 @@ console.log(`${file.name} was split into ${result.chunkCount} chunks for process
                 </div>
               )}
               <ScrollArea className="flex-1 ">
-                {/* {error && <div className="mt-4 p-4 bg-red-100 text-red-700 rounded">Error: {error}</div>}
+                {/* {error && <div className="mt-4 p-4 bg-red-100 text-red-700 rounded">Error: {error}</div>} */}
 
                 {result && (
                   <div className="mb-6 pr-6 max-w-[800px] ml-auto">
@@ -264,154 +251,52 @@ console.log(`${file.name} was split into ${result.chunkCount} chunks for process
                       <div className="ml-auto flex gap-2"></div>
                     </div>
                   </div>
-                )} */}
-                  {console.log(messages, "messagesmessagesmessages")}
-                  {messages.map((message) => (
-                    <div key={message.id}>
-                      {message.role === "user" ? (
-                        <div className="mb-6">
-                          <div className="flex gap-3 mb-3">
-                            {/* <Avatar className="h-8 w-8">
-                            <AvatarImage src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-01-30%20at%207.51.38%E2%80%AFPM-xaPUwKfWTkYwpcPasYsk0x0gucxecP.png" />
-                            <AvatarFallback>US</AvatarFallback>
-                          </Avatar> */}
-
-                            <div className="flex-1 ml-auto max-w-[480px]">
-                              <div className=" text-white bg-[#ffffff21] w-max p-5 rounded-[24px_0px_24px_24px] max-w-[476px] ml-auto">
-                                <p
-                                  className="text-white-800 prose whitespace-pre-line"
-                                  dangerouslySetInnerHTML={{
-                                    __html: message.content,
-                                  }}
-                                />
-
-                                {/* {message?.toolInvocations[0]?.state==="call"&&<p>Getting information......</p>} */}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="mb-6 pr-6 max-w-[800px] ml-auto">
-                          <div className="flex gap-3 mb-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-01-30%20at%207.51.38%E2%80%AFPM-xaPUwKfWTkYwpcPasYsk0x0gucxecP.png" />
-                              <AvatarFallback>AI</AvatarFallback>
-                            </Avatar>
-
-                            <div className="flex-1 relative ">
-                              <GlowEffect
-                                colors={[
-                                  "#0ca361",
-                                  "#b8ffdf",
-                                  "#838383",
-                                  "#0b4f31",
-                                ]}
-                                mode="static"
-                                blur="medium"
-                              />
-                              <div className="bg-[#0e110e] relative p-5 rounded-[0px_24px_24px_24px] prose text-[#d9fde1]">
-                            <ReactMarkdown>{message.content}</ReactMarkdown>
-                                {/* {message.toolInvocations?.length > 0 && (
-                                  <ReactMarkdown>
-                                    {message?.toolInvocations[0]?.result?.text}
-                                  </ReactMarkdown>
-                                )} */}
-                                {/* <p
-                                className=""
-                                dangerouslySetInnerHTML={{
-                                  __html: message.content,
-                                }}
-                              /> */}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 ml-11">
-                            <Button variant="ghost" size="icon">
-                              <ThumbsUp className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon">
-                              <ThumbsDown className="w-4 h-4" />
-                            </Button>
-                            <div className="ml-auto flex gap-2"></div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  {isLoading && (
-                    <div className="flex items-center">
-                      <div className="aspect-[1/1] relative w-[30px] rounded-full overflow-hidden me-3 ">
-                        <video
-                          className="absolute top-0 left-0 w-full h-full object-cover"
-                          autoPlay={true}
-                          loop={true}
-                          muted={true}
-                          playsInline={true}
-                        >
-                          <source src="/ai.webm" type="video/webm" />
-                        </video>
-                      </div>
-                      <TextShimmer
-                        duration={1.2}
-                        className="text-xl font-medium [--base-color:theme(colors.green.600)] [--base-gradient-color:theme(colors.green.200)] dark:[--base-color:theme(colors.green.700)] dark:[--base-gradient-color:theme(colors.green.400)]"
-                      >
-                        Just a sec...
-                      </TextShimmer>
-                    </div>
-                  )}
+                )}
               </ScrollArea>
 
               {/* Input Area */}
-              <div
+             {
+                documents.length >0?   <div
                 className="rounded-lg p-4 border border-[#adfcda94] bg-[#dfdfdf1a] shadow-[0px_0px_14px_0px_#097647]"
                 style={{ position: "sticky", bottom: 0 }}
-              >
-
-                
-                <form onSubmit={handleSubmit} className="space-y-4 flex items-center gap-2">
-                  {/* <textarea
-                    placeholder="Ask a question..."
-                    className="min-h-[100px] bg-transparent w-full text-white"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                  /> */}
-                    <Input
-                      type="text"
-                      // value={query}
-                      // onChange={(e) => setInput(e.target.value)}
-                      value={input}
-                      onChange={handleInputChange}
-                      className="border-0 bg-transparent text-white focus-visible:ring-0 px-0 flex-1"
-                      placeholder="Ask or search anything"
-                      // onChange={(event) => setInput(event.target.value)}
-                      // disabled={loading}
-                    />
-                  <Button
-                    type="submit"
-                    variant="ghost"
-                    size="icon"
-                    className=" bg-white rounded-full"
-                    disabled={isLoading || !input.trim() || documents.length === 0}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className=" h-4 w-4 animate-spin" />
-                        {/* Generating... */}
-                      </>
-                    ) : (
-                      <>
-                        <Search className=" h-4 w-4" />
-                        {/* Generate Content */}
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </div>
+              > <form onSubmit={handleSubmit} className="space-y-4 flex items-end">
+                <input
+                  placeholder="Ask a question..."
+                  className="outline-none border-0 bg-transparent w-full text-white"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+                <Button
+                  type="submit"
+                  disabled={loading || !query.trim() || documents.length === 0}
+                  variant="ghost"
+                  size="icon"
+                  className=" bg-white rounded-full"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className=" h-4 w-4 animate-spin" />
+                      {/* Generating... */}
+                    </>
+                  ) : (
+                    <>
+                      <Search className=" h-4 w-4" />
+                      {/* Generate Content */}
+                    </>
+                  )}
+                </Button>
+              </form>    </div>: <h1 className="text-base font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#a0fbb3] text-center to-[#fefefe] mb-3">
+                    {" "}
+                   Upload documents first
+                  </h1>
+              }
+             
+          
             </div>
           </div>
 
           {/* Right Sidebar */}
-          <div className="w-80 p-4 rounded-lg ">
+          <div className="w-80 p-4 rounded-lg bg-[#ffffff14] border border-[#eeeeee14]">
             <ScrollArea className="flex-1 max-h-[calc(100vh-200px)]">
               <div className="space-y-4">
                 {/* <div className="flex space-x-2">
@@ -419,7 +304,7 @@ console.log(`${file.name} was split into ${result.chunkCount} chunks for process
                     value={newDocument}
                     onChange={(e) => setNewDocument(e.target.value)}
                     placeholder="Enter a document or fact..."
-                    className="flex-1 text-white"
+                    className="flex-1"
                   />
                   <Button onClick={handleAddDocument} disabled={!newDocument.trim()}>
                     <Plus className="h-4 w-4 mr-2" />
@@ -433,9 +318,9 @@ console.log(`${file.name} was split into ${result.chunkCount} chunks for process
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <h3 className="font-medium">Upload Documents</h3>
-                        <div className="ml-2">
+                        {/* <div className="ml-2">
                           {documentStats.chunks} chunks
-                        </div>
+                        </div> */}
                       </div>
 
                       <div className="border-2 border-dashed rounded-lg p-6 text-center">
@@ -484,15 +369,16 @@ console.log(`${file.name} was split into ${result.chunkCount} chunks for process
                     </div>
                   </CardContent>
                 </Card>
-
+                {
+                documents.length >0&&
                 <div className="border rounded-md divide-y">
-                  <h3 className="font-medium p-3 border-b text-white">Knowledge Base ({documentStats.count} documents)</h3>
+                  <h3 className="font-medium p-3 border-b text-white">Knowledge Base ({documents.length} documents)</h3>
                   {documents.length === 0 ? (
                     <div className="p-4 text-center text-muted-foreground text-sm">No documents added yet</div>
                   ) : (
                     documents.map((doc, index) => (
                       <div key={index} className="p-3 flex justify-between items-start">
-                        <div className="text-sm max-h-20 overflow-hidden text-ellipsis text-white" >
+                        <div className="text-sm max-h-20 overflow-hidden text-ellipsis text-white">
                           {doc.length > 100 ? `${doc.substring(0, 100)}...` : doc}
                         </div>
                         <Button variant="ghost" size="sm" onClick={() => handleRemoveDocument(index)}>
@@ -501,7 +387,7 @@ console.log(`${file.name} was split into ${result.chunkCount} chunks for process
                       </div>
                     ))
                   )}
-                </div>
+                </div>}
               </div>
             </ScrollArea>
           </div>
